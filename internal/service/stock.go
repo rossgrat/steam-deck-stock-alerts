@@ -2,9 +2,8 @@ package service
 
 import (
 	"fmt"
+	"log/slog"
 	"strconv"
-
-	"github.com/rs/zerolog"
 
 	"github.com/rossgrat/steam-deck-stock-alerts/internal/config"
 	"github.com/rossgrat/steam-deck-stock-alerts/internal/repo"
@@ -18,7 +17,7 @@ type StockService struct {
 	steamClient *steam.Client
 	repo        *repo.StockRepo
 	ntfyClient  *ntfy.Client
-	logger      zerolog.Logger
+	logger      *slog.Logger
 	packages    []config.PackageConfig
 	countryCode string
 }
@@ -27,7 +26,7 @@ func NewStockService(
 	steamClient *steam.Client,
 	repo *repo.StockRepo,
 	ntfyClient *ntfy.Client,
-	logger zerolog.Logger,
+	logger *slog.Logger,
 	packages []config.PackageConfig,
 	countryCode string,
 ) *StockService {
@@ -44,11 +43,11 @@ func NewStockService(
 func (s *StockService) CheckAndNotify() error {
 	for _, pkg := range s.packages {
 		if err := s.checkPackage(pkg); err != nil {
-			s.logger.Error().
-				Err(err).
-				Int("package_id", pkg.ID).
-				Str("package_name", pkg.Name).
-				Msg("failed to check package")
+			s.logger.Error("failed to check package",
+				"package_id", pkg.ID,
+				"package_name", pkg.Name,
+				"error", err,
+			)
 		}
 	}
 	return nil
@@ -68,12 +67,12 @@ func (s *StockService) checkPackage(pkg config.PackageConfig) error {
 
 	currentlyAvailable := inventory.InventoryAvailable
 
-	s.logger.Info().
-		Int("package_id", pkg.ID).
-		Str("package_name", pkg.Name).
-		Bool("available", currentlyAvailable).
-		Bool("high_pending_orders", inventory.HighPendingOrders).
-		Msg("stock check completed")
+	s.logger.Info("stock check completed",
+		"package_id", pkg.ID,
+		"package_name", pkg.Name,
+		"available", currentlyAvailable,
+		"high_pending_orders", inventory.HighPendingOrders,
+	)
 
 	if err := s.handleTransition(pkg, previousState, currentlyAvailable); err != nil {
 		return fmt.Errorf("handling transition: %w", err)
@@ -109,10 +108,10 @@ func (s *StockService) handleTransition(pkg config.PackageConfig, previousState 
 }
 
 func (s *StockService) sendInStockNotification(pkg config.PackageConfig) error {
-	s.logger.Info().
-		Int("package_id", pkg.ID).
-		Str("package_name", pkg.Name).
-		Msg("sending in-stock notification")
+	s.logger.Info("sending in-stock notification",
+		"package_id", pkg.ID,
+		"package_name", pkg.Name,
+	)
 
 	return s.ntfyClient.Send(ntfy.Notification{
 		Title:    fmt.Sprintf("Steam Deck %s — In Stock!", pkg.Name),
@@ -124,10 +123,10 @@ func (s *StockService) sendInStockNotification(pkg config.PackageConfig) error {
 }
 
 func (s *StockService) sendOutOfStockNotification(pkg config.PackageConfig) error {
-	s.logger.Info().
-		Int("package_id", pkg.ID).
-		Str("package_name", pkg.Name).
-		Msg("sending out-of-stock notification")
+	s.logger.Info("sending out-of-stock notification",
+		"package_id", pkg.ID,
+		"package_name", pkg.Name,
+	)
 
 	return s.ntfyClient.Send(ntfy.Notification{
 		Title:    fmt.Sprintf("Steam Deck %s — Out of Stock", pkg.Name),

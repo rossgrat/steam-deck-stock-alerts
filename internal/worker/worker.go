@@ -2,9 +2,8 @@ package worker
 
 import (
 	"context"
+	"log/slog"
 	"time"
-
-	"github.com/rs/zerolog"
 
 	"github.com/rossgrat/steam-deck-stock-alerts/internal/service"
 )
@@ -12,10 +11,10 @@ import (
 type Worker struct {
 	service  *service.StockService
 	interval time.Duration
-	logger   zerolog.Logger
+	logger   *slog.Logger
 }
 
-func New(svc *service.StockService, interval time.Duration, logger zerolog.Logger) *Worker {
+func New(svc *service.StockService, interval time.Duration, logger *slog.Logger) *Worker {
 	return &Worker{
 		service:  svc,
 		interval: interval,
@@ -24,7 +23,7 @@ func New(svc *service.StockService, interval time.Duration, logger zerolog.Logge
 }
 
 func (w *Worker) Run(ctx context.Context) {
-	w.logger.Info().Dur("interval", w.interval).Msg("worker started")
+	w.logger.Info("worker started", "interval", w.interval.String())
 
 	// Run immediately on startup
 	w.service.CheckAndNotify()
@@ -35,7 +34,7 @@ func (w *Worker) Run(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			w.logger.Info().Msg("worker stopping")
+			w.logger.Info("worker stopping")
 			return
 		case <-ticker.C:
 			w.service.CheckAndNotify()
