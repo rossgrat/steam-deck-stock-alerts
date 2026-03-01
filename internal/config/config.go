@@ -19,6 +19,7 @@ type Config struct {
 type NtfyConfig struct {
 	URL   string `mapstructure:"url"`
 	Topic string `mapstructure:"topic"`
+	Token string `mapstructure:"token"`
 }
 
 type PackageConfig struct {

@@ -45,7 +45,7 @@ func runStart(cmd *cobra.Command, args []string) error {
 	defer stockRepo.Close()
 
 	steamClient := steam.NewClient()
-	ntfyClient := ntfy.NewClient(cfg.Ntfy.URL, cfg.Ntfy.Topic)
+	ntfyClient := ntfy.NewClient(cfg.Ntfy.URL, cfg.Ntfy.Topic, cfg.Ntfy.Token)
 
 	svc := service.NewStockService(
 		steamClient,

@@ -12,6 +12,7 @@ type Client struct {
 	httpClient *http.Client
 	baseURL    string
 	topic      string
+	token      string
 }
 
 type Notification struct {
@@ -22,13 +23,14 @@ type Notification struct {
 	ClickURL string
 }
 
-func NewClient(baseURL, topic string) *Client {
+func NewClient(baseURL, topic, token string) *Client {
 	return &Client{
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
 		},
 		baseURL: baseURL,
 		topic:   topic,
+		token:   token,
 	}
 }
 
@@ -42,6 +44,10 @@ func (c *Client) Send(n Notification) error {
 
 	req.Header.Set("Title", n.Title)
 	req.Header.Set("Priority", strconv.Itoa(n.Priority))
+
+	if c.token != "" {
+		req.Header.Set("Authorization", "Bearer "+c.token)
+	}
 
 	if len(n.Tags) > 0 {
 		req.Header.Set("Tags", strings.Join(n.Tags, ","))
