@@ -1,0 +1,26 @@
+services:
+  stock-checker:
+    image: ghcr.io/rossgrat/steam-deck-stock-alerts:latest
+    container_name: steam-deck-stock-alerts
+    env_file:
+      - .env
+    volumes:
+      - ./config.yaml:/app/config.yaml
+      - stock-data:/data
+      - stock-logs:/var/log/steam-deck-alerts
+    networks:
+      - caddy-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+
+networks:
+  caddy-network:
+    external: true
+
+volumes:
+  stock-data:
+  stock-logs:
