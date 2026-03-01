@@ -23,15 +23,28 @@ type Notification struct {
 	ClickURL string
 }
 
-func NewClient(baseURL, topic, token string) *Client {
-	return &Client{
+type Option func(*Client)
+
+func WithToken(token string) Option {
+	return func(c *Client) { c.token = token }
+}
+
+func WithHTTPClient(httpClient *http.Client) Option {
+	return func(c *Client) { c.httpClient = httpClient }
+}
+
+func NewClient(baseURL, topic string, opts ...Option) *Client {
+	c := &Client{
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
 		},
 		baseURL: baseURL,
 		topic:   topic,
-		token:   token,
 	}
+	for _, opt := range opts {
+		opt(c)
+	}
+	return c
 }
 
 func (c *Client) Send(n Notification) error {

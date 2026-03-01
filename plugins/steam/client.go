@@ -24,12 +24,22 @@ type apiResponse struct {
 	Response InventoryResponse `json:"response"`
 }
 
-func NewClient() *Client {
-	return &Client{
+type Option func(*Client)
+
+func WithHTTPClient(httpClient *http.Client) Option {
+	return func(c *Client) { c.httpClient = httpClient }
+}
+
+func NewClient(opts ...Option) *Client {
+	c := &Client{
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
 		},
 	}
+	for _, opt := range opts {
+		opt(c)
+	}
+	return c
 }
 
 func (c *Client) CheckInventory(packageID int, countryCode string) (*InventoryResponse, error) {
