@@ -57,14 +57,14 @@ func runStart(cmd *cobra.Command, args []string) error {
 	)
 
 	// Send startup notification
-	log.Info().Msg("service starting")
+	log.Info("service starting")
 	if err := ntfyClient.Send(ntfy.Notification{
 		Title:    "Steam Deck Stock Alerts",
 		Body:     "Stock monitoring service started.",
 		Priority: 3,
 		Tags:     []string{"rocket"},
 	}); err != nil {
-		log.Error().Err(err).Msg("failed to send startup notification")
+		log.Error("failed to send startup notification", "error", err)
 	}
 
 	// Set up signal handling
@@ -76,14 +76,14 @@ func runStart(cmd *cobra.Command, args []string) error {
 	w.Run(ctx)
 
 	// Send shutdown notification
-	log.Info().Msg("service stopping")
+	log.Info("service stopping")
 	if err := ntfyClient.Send(ntfy.Notification{
 		Title:    "Steam Deck Stock Alerts",
 		Body:     "Stock monitoring service stopping.",
 		Priority: 3,
 		Tags:     []string{"stop_sign"},
 	}); err != nil {
-		log.Error().Err(err).Msg("failed to send shutdown notification")
+		log.Error("failed to send shutdown notification", "error", err)
 	}
 
 	return nil
