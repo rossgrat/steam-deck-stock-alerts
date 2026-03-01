@@ -20,6 +20,7 @@ type StockService struct {
 	logger      *slog.Logger
 	packages    []config.PackageConfig
 	countryCode string
+	apiHealthy  bool
 }
 
 func NewStockService(
@@ -37,12 +38,16 @@ func NewStockService(
 		logger:      logger,
 		packages:    packages,
 		countryCode: countryCode,
+		apiHealthy:  true,
 	}
 }
 
 func (s *StockService) CheckAndNotify() error {
+	var anyError bool
+
 	for _, pkg := range s.packages {
 		if err := s.checkPackage(pkg); err != nil {
+			anyError = true
 			s.logger.Error("failed to check package",
 				"package_id", pkg.ID,
 				"package_name", pkg.Name,
@@ -50,6 +55,25 @@ func (s *StockService) CheckAndNotify() error {
 			)
 		}
 	}
+
+	if anyError && s.apiHealthy {
+		s.apiHealthy = false
+		s.ntfyClient.Send(ntfy.Notification{
+			Title:    "Steam Deck Stock Alerts — API Error",
+			Body:     "The Steam API is returning errors. Stock checks may be unreliable until this is resolved.",
+			Priority: 4,
+			Tags:     []string{"warning"},
+		})
+	} else if !anyError && !s.apiHealthy {
+		s.apiHealthy = true
+		s.ntfyClient.Send(ntfy.Notification{
+			Title:    "Steam Deck Stock Alerts — API Recovered",
+			Body:     "The Steam API is responding normally again.",
+			Priority: 3,
+			Tags:     []string{"white_check_mark"},
+		})
+	}
+
 	return nil
 }
 
