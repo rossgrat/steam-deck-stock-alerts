@@ -1,4 +1,6 @@
 *.db
 *.log
 .env
+.env.*
+*.env
 steam-deck-stock-alerts
