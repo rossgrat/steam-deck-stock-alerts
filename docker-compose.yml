@@ -1,0 +1,25 @@
+services:
+  ntfy:
+    image: binver/ntfy
+    command: serve
+    volumes:
+      - ntfy-cache:/var/cache/ntfy
+      - ./ntfy-server.yml:/etc/ntfy/server.yml
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+  stock-checker:
+    build: .
+    volumes:
+      - ./config.yaml:/app/config.yaml
+      - stock-data:/data
+      - stock-logs:/var/log/steam-deck-alerts
+    depends_on:
+      - ntfy
+    restart: unless-stopped
+
+volumes:
+  ntfy-cache:
+  stock-data:
+  stock-logs:

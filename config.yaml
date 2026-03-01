@@ -1,0 +1,16 @@
+polling_interval: 1m
+ntfy:
+  url: http://ntfy:80
+  topic: steam-deck-alerts
+packages:
+  - id: 1202542
+    name: "512GB OLED"
+  - id: 1202547
+    name: "1TB OLED"
+country_code: US
+log:
+  path: /var/log/steam-deck-alerts/app.log
+  max_size_mb: 10
+  max_backups: 3
+db:
+  path: /data/stock.db
