@@ -2,7 +2,6 @@ polling_interval: 1m
 ntfy:
   url: http://ntfy:80
   topic: steam-deck-alerts
-  token: ""
 packages:
   - id: 1202542
     name: "512GB OLED"

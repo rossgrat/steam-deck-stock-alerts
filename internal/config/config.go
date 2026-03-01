@@ -39,6 +39,7 @@ type DBConfig struct {
 
 func Load(path string) (*Config, error) {
 	viper.SetConfigFile(path)
+	viper.BindEnv("ntfy.token", "NTFY_TOKEN")
 
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("reading config file: %w", err)
