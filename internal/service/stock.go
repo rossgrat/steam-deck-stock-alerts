@@ -21,6 +21,7 @@ type StockService struct {
 	packages    []config.PackageConfig
 	countryCode string
 	apiHealthy  bool
+	errorCount  int
 }
 
 func NewStockService(
@@ -39,6 +40,7 @@ func NewStockService(
 		packages:    packages,
 		countryCode: countryCode,
 		apiHealthy:  true,
+		errorCount:  0,
 	}
 }
 
@@ -56,22 +58,22 @@ func (s *StockService) CheckAndNotify() error {
 		}
 	}
 
+	// If we received an error and the API is healthy, increment the error count
 	if anyError && s.apiHealthy {
+		s.errorCount++
+	}
+
+	// If we reach 10 errors and the API is healthy, set to unhealthy and send an error notification
+	if s.errorCount >= 10 && s.apiHealthy {
+		s.sendAPIErrorNotification()
 		s.apiHealthy = false
-		s.ntfyClient.Send(ntfy.Notification{
-			Title:    "Steam Deck Stock Alerts — API Error",
-			Body:     "The Steam API is returning errors. Stock checks may be unreliable until this is resolved.",
-			Priority: 4,
-			Tags:     []string{"warning"},
-		})
-	} else if !anyError && !s.apiHealthy {
+		s.errorCount = 0
+	}
+
+	// If we don't get an error, and the API is unhealthy, send a recovery notifcation
+	if !anyError && !s.apiHealthy {
 		s.apiHealthy = true
-		s.ntfyClient.Send(ntfy.Notification{
-			Title:    "Steam Deck Stock Alerts — API Recovered",
-			Body:     "The Steam API is responding normally again.",
-			Priority: 3,
-			Tags:     []string{"white_check_mark"},
-		})
+		s.sendAPIRecoveredNotification()
 	}
 
 	return nil
@@ -129,6 +131,28 @@ func (s *StockService) handleTransition(pkg config.PackageConfig, previousState 
 	}
 
 	return nil
+}
+
+func (s *StockService) sendAPIErrorNotification() error {
+	s.logger.Info("sending API error notification")
+
+	return s.ntfyClient.Send(ntfy.Notification{
+		Title:    "Steam Deck Stock Alerts — API Error",
+		Body:     "The Steam API is returning errors. Stock checks may be unreliable until this is resolved.",
+		Priority: 4,
+		Tags:     []string{"warning"},
+	})
+}
+
+func (s *StockService) sendAPIRecoveredNotification() error {
+	s.logger.Info("sending API recovered notifcation")
+
+	return s.ntfyClient.Send(ntfy.Notification{
+		Title:    "Steam Deck Stock Alerts — API Recovered",
+		Body:     "The Steam API is responding normally again.",
+		Priority: 3,
+		Tags:     []string{"white_check_mark"},
+	})
 }
 
 func (s *StockService) sendInStockNotification(pkg config.PackageConfig) error {
