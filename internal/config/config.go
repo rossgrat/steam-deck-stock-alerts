@@ -25,6 +25,7 @@ type NtfyConfig struct {
 type PackageConfig struct {
 	ID   int    `mapstructure:"id"`
 	Name string `mapstructure:"name"`
+	URL  string `mapstructure:"url"`
 }
 
 type LogConfig struct {

@@ -11,7 +11,6 @@ import (
 	"github.com/rossgrat/steam-deck-stock-alerts/plugins/steam"
 )
 
-const steamDeckStoreURL = "https://store.steampowered.com/steamdeck"
 
 type StockService struct {
 	steamClient *steam.Client
@@ -166,7 +165,7 @@ func (s *StockService) sendInStockNotification(pkg config.PackageConfig) error {
 		Body:     fmt.Sprintf("The Steam Deck %s is available for purchase! Go grab one before it sells out.", pkg.Name),
 		Priority: 5,
 		Tags:     []string{"rotating_light", "video_game"},
-		ClickURL: steamDeckStoreURL,
+		ClickURL: pkg.URL,
 	})
 }
 
@@ -181,6 +180,6 @@ func (s *StockService) sendOutOfStockNotification(pkg config.PackageConfig) erro
 		Body:     fmt.Sprintf("The Steam Deck %s is no longer available.", pkg.Name),
 		Priority: 3,
 		Tags:     []string{"video_game"},
-		ClickURL: steamDeckStoreURL,
+		ClickURL: pkg.URL,
 	})
 }
